@@ -16,25 +16,37 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
 import pacebuddy2.composeapp.generated.resources.Res
-import pacebuddy2.composeapp.generated.resources.compose_multiplatform
+import pacebuddy2.composeapp.generated.resources.light
+
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun App() {
     val viewModel = remember {
         AppViewModel(calculationService = CalculationService())
     }
 
     var distanceText by remember { mutableStateOf("") }
-    var distanceTextFocused by remember { mutableStateOf(false) }
     var timeText by remember { mutableStateOf("") }
-    var timeTextFocused by remember { mutableStateOf(false) }
     var paceText by remember { mutableStateOf("") }
-    var paceTextFocused by remember { mutableStateOf(false) }
+
+
+    LaunchedEffect(viewModel.distance) {
+        println("dist launch effect")
+        distanceText = "${viewModel.distance}"
+    }
+    LaunchedEffect(viewModel.time) {
+        println("time launch effect")
+        timeText = "${viewModel.time}"
+    }
+    LaunchedEffect(viewModel.pace) {
+        println("pace launch effect")
+        paceText = "${viewModel.pace}"
+    }
 
     MaterialTheme {
         Box(
@@ -42,31 +54,48 @@ fun App() {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "Hello World")
 
-            TextField(
-                value = distanceText,
-                onValueChange = { distanceText = it },
-                label = { Text("Enter Distance") },
-                modifier = Modifier.onFocusChanged { focusState ->
-                    distanceTextFocused = focusState.isFocused
-                    if (!focusState.isFocused) {
-                        // 👇 onBlur logic here
-                        println("TextField lost focus, value = $text")
+            Image(
+                painterResource(Res.drawable.light),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            Column {
+                Text(text = "Hello World")
+
+                TextField(
+                    value = distanceText,
+                    onValueChange = { distanceText = it },
+                    label = { Text("Enter Distance") },
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        if (!focusState.isFocused) {
+                            viewModel.onBlurDistanceField(text = distanceText)
+                        }
                     }
-                }
-            )
-            TextField(
-                value = timeText,
-                onValueChange = { timeText = it },
-                label = { Text("Enter Time") }
-            )
-            TextField(
-                value = paceText,
-                onValueChange = { paceText = it },
-                label = { Text("Enter Pace") }
-
-            )
+                )
+                TextField(
+                    value = timeText,
+                    onValueChange = { timeText = it },
+                    label = { Text("Enter Time") },
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        if (!focusState.isFocused) {
+                            viewModel.onBlurTimeField(text = timeText)
+                        }
+                    }
+                )
+                TextField(
+                    value = paceText,
+                    onValueChange = { paceText = it },
+                    label = { Text("Enter Pace") },
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        if (!focusState.isFocused) {
+                            viewModel.onBlurPaceField(text = paceText)
+                        }
+                    }
+                )
+            }
         }
     }
 }

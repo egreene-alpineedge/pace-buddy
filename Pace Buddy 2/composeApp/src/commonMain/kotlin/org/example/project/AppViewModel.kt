@@ -15,26 +15,63 @@ class AppViewModel(
         private set
 
 
-    fun blurTimeField() {
-        if (distance != null && pace != null) {
-            val d = distance!!
-            val p = pace!!
-            time = calculateTime(distance = d, pace = p)
+    fun onBlurTimeField(text: String) {
+        try {
+            val convertedTime = text.toDouble()
+            time = convertedTime
+        } catch (e: NumberFormatException) {
+            time = null
+            return
         }
-    }
-    fun blurDistanceField() {
-        if (time != null || pace != null) {
-            val t = time!!
+
+        val t = time!!
+        if (distance != null) {
+            val d = distance!!
+            pace = calculatePace(time = t, distance = d)
+        }
+        else if (pace != null) {
             val p = pace!!
             distance = calculateDistance(time = t, pace = p)
         }
     }
-    fun blurPaceField(){
-        if (time != null && distance != null) {
+    fun onBlurDistanceField(text: String) {
+        try {
+            val convertedDistance = text.toDouble()
+            distance = convertedDistance
+        } catch (e: NumberFormatException) {
+            distance = null
+            return
+        }
+
+        val d = distance!!
+        if (time != null) {
             val t = time!!
-            val d = distance!!
             pace = calculatePace(time = t, distance = d)
         }
+        else if (pace != null) {
+            val p = pace!!
+            time = calculateTime(distance = d, pace = p)
+        }
+    }
+    fun onBlurPaceField(text: String) {
+        try {
+            val convertedPace = text.toDouble()
+            pace = convertedPace
+        } catch (e: NumberFormatException) {
+            pace = null
+            return
+        }
+
+        val p = pace!!
+        if (time != null) {
+            val t = time!!
+            distance = calculateDistance(time = t, pace = p)
+        }
+        else if (distance != null) {
+            val d = distance!!
+            time = calculateTime(distance = d, pace = p)
+        }
+
     }
 
 
