@@ -75,7 +75,7 @@ class AppViewModel(
     }
 
 
-    // -----------------------------------
+    // -----------------------------------------------------------
 
 
     private fun calculateTime(distance: Double, pace: Double): Double {
