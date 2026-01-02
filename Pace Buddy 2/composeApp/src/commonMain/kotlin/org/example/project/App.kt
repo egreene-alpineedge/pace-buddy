@@ -50,13 +50,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import org.example.project.Services.CalculationService
 import org.example.project.components.Field
 import org.example.project.components.GreenPicker
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import pacebuddy2.composeapp.generated.resources.Res
 import pacebuddy2.composeapp.generated.resources.light
+import kotlin.math.floor
+import kotlin.time.Duration.Companion.convert
 
 @Composable
 fun fadedBorder(): BorderStroke {
@@ -72,6 +77,57 @@ fun fadedBorder(): BorderStroke {
             end = Offset(0f, 100f)      // bottom
         )
     )
+}
+
+fun convertValueToDistanceText(value: Double): String {
+    val stringValue = value.toString()
+
+    return if (stringValue.endsWith(".0")) {
+        stringValue.dropLast(2)
+    } else {
+        stringValue
+    }
+
+}
+
+fun convertValueToTimeText(value: Double): String {
+    var temp = value
+    val hours = floor(temp / 3600).toInt()
+    temp %= 3600
+    val minutes = floor(temp / 60).toInt()
+    temp %= 60
+    val seconds = temp.toInt()
+
+    val hoursText = "$hours"
+    val minutesText = if (minutes < 10) "0$minutes" else "$minutes"
+    val secondsText = if (seconds < 10) "0$seconds" else "$seconds"
+
+    return if (hours == 0) {
+        "$minutesText:$secondsText"
+    } else {
+        "$hoursText:$minutesText:$secondsText"
+    }
+
+}
+
+fun handleTimeValueChange(text: String): String {
+    val input = text.filter { it != ':' }
+
+    if (input.length > 6) {
+        return text.dropLast(1)
+    }
+
+    return if (input.length > 6) {
+        val head = input.take(4)
+        val tail = input.drop(4).chunked(2).joinToString(":")
+        if (tail.isNotEmpty()) "$head:$tail" else head
+    } else {
+        val padded = if (input.length % 2 != 0) "0$input" else input
+        val resT = padded.chunked(2).joinToString(":")
+        val res = if (input.length % 2 != 0) resT.drop(1) else resT
+        res
+    }
+
 }
 
 
@@ -95,17 +151,26 @@ fun App() {
     var count by remember { mutableStateOf(3) }
 
 
-    LaunchedEffect(viewModel.distance) {
-        println("dist launch effect")
-        distanceText = "${viewModel.distance}"
-    }
+//    LaunchedEffect(viewModel.distance) {
+//        println("dist launch effect")
+//        if (viewModel.distance != null) {
+//            distanceText = convertValueToDistanceText(viewModel.distance!!)
+//        }
+//    }
     LaunchedEffect(viewModel.time) {
         println("time launch effect")
-        timeText = "${viewModel.time}"
+        if (viewModel.time != null) {
+            timeText = convertValueToTimeText(viewModel.time!!)
+        }
+
     }
     LaunchedEffect(viewModel.pace) {
         println("pace launch effect")
         paceText = "${viewModel.pace}"
+    }
+    LaunchedEffect(viewModel.speed) {
+        println("speed launch effect")
+        speedText = "${viewModel.speed}"
     }
 
     MaterialTheme {
@@ -115,9 +180,8 @@ fun App() {
                     .fillMaxSize(),
                 contentAlignment = Alignment.TopCenter
             ) {
-
                 Image(
-                    painterResource(Theme[theme]!!["background_image"]!!),
+                    painterResource(Theme[theme]!!.backgroundImage),
                     contentDescription = null,
                     modifier = Modifier
                         .width(screenWidth)
@@ -127,7 +191,7 @@ fun App() {
 
                 Column(
                     modifier = Modifier
-                        .background(Color(0xFF097381).copy(alpha = 0.2f))
+                        .background(Theme[theme]!!.backgroundOverlay)
                         .fillMaxSize()
                 ) { }
 
@@ -160,9 +224,11 @@ fun App() {
 
                         Button(
                             modifier = Modifier.size(width = 80.dp, height = 40.dp),
-                            onClick = { },
+                            onClick = {
+                                viewModel.onReset()
+                            },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0x801A60E9),
+                                containerColor = Theme[theme]!!.resetButtonColor,
                             ),
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(0.dp),
@@ -178,8 +244,6 @@ fun App() {
 
                         }
                     }
-
-
 
                     Box (
                         modifier = Modifier
@@ -213,7 +277,7 @@ fun App() {
                     ) {
 
                         Image(
-                            imageResource(Res.drawable.light),
+                            imageResource(Theme[theme]!!.backgroundImage),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -240,11 +304,7 @@ fun App() {
                             modifier = Modifier
                                 .background(
                                     Brush.linearGradient(
-                                        colors = listOf(
-                                            Color.White.copy(alpha = 0.5f),
-                                            Color.White.copy(alpha = 0.2f)   // transparent
-
-                                        ),
+                                        colors = Theme[theme]!!.containerGradient,
                                         start = Offset(0f, 0f),     // top
                                         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)      // bottom
                                     )
@@ -262,6 +322,7 @@ fun App() {
                             Field(
                                 label = "Time",
                                 value = timeText,
+                                transform = { handleTimeValueChange(it) },
                                 onValueChange = {
                                     timeText = it
                                 },
@@ -278,20 +339,29 @@ fun App() {
                                 },
                                 onBlur = {
                                     viewModel.onBlurDistanceField(text = distanceText)
+                                    val distanceValue = distanceText.toDoubleOrNull()
+                                    if (distanceValue != null) {
+                                        val texttt = convertValueToDistanceText(distanceValue)
+                                        distanceText = texttt
+                                    }
+
+//                                    if (viewModel.distance != null) {
+//                                        distanceText = convertValueToDistanceText(viewModel.distance!!)
+//                                    }
                                 }
                             )
-
-                            Field(
-                                label = "Pace",
-                                value = paceText,
-                                onValueChange = {
-                                    paceText = it
-                                },
-                                onBlur = {
-                                    viewModel.onBlurPaceField(text = paceText)
-                                }
-                            )
-
+//
+//                            Field(
+//                                label = "Pace",
+//                                value = paceText,
+//                                onValueChange = {
+//                                    paceText = it
+//                                },
+//                                onBlur = {
+//                                    viewModel.onBlurPaceField(text = paceText)
+//                                }
+//                            )
+//
                             Field(
                                 label = "Speed",
                                 value = speedText,
@@ -299,7 +369,7 @@ fun App() {
                                     speedText = it
                                 },
                                 onBlur = {
-//                            viewModel.onBlurPaceField(text = paceText)
+                                    viewModel.onBlurSpeedField(text = speedText)
                                 }
                             )
                         }
@@ -325,7 +395,7 @@ fun App() {
                     ) {
 
                         Image(
-                            imageResource(Res.drawable.light),
+                            imageResource(Theme[theme]!!.backgroundImage),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -352,11 +422,7 @@ fun App() {
                             modifier = Modifier
                                 .background(
                                     Brush.linearGradient(
-                                        colors = listOf(
-                                            Color.White.copy(alpha = 0.5f),
-                                            Color.White.copy(alpha = 0.2f)
-
-                                        ),
+                                        colors = Theme[theme]!!.containerGradient,
                                         start = Offset(0f, 0f),
                                         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)      // bottom
                                     )
@@ -371,6 +437,9 @@ fun App() {
                                 .padding(24.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            SplitRow(split = "1 mi", time = "7m 12s")
+                            SplitRow(split = "2 mi", time = "14m 24s")
+                            SplitRow(split = "3 mi", time = "21m 36s")
                             SplitRow(split = "1 mi", time = "7m 12s")
                             SplitRow(split = "2 mi", time = "14m 24s")
                             SplitRow(split = "3 mi", time = "21m 36s")

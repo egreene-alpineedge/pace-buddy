@@ -1,38 +1,42 @@
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import org.jetbrains.compose.resources.DrawableResource
 import pacebuddy2.composeapp.generated.resources.Res
 import pacebuddy2.composeapp.generated.resources.dark
 import pacebuddy2.composeapp.generated.resources.light
 
-private val LightColors = lightColorScheme(
-    primary = Color(0xFF0066FF),
-    onPrimary = Color.White,
-    background = Color(0xFFFFFFFF),
-    onBackground = Color.Black,
-)
+interface AppTheme {
+    val backgroundImage: DrawableResource
+    val backgroundOverlay: Color
+    val resetButtonColor: Color
+    val containerGradient: List<Color>
+    val textColor: Color
+}
 
-private val DarkColors = darkColorScheme(
-    primary = Color(0xFF82B1FF),
-    onPrimary = Color.Black,
-    background = Color(0xFF121212),
-    onBackground = Color.White,
-)
+class LightTheme : AppTheme {
+    override val backgroundImage: DrawableResource = Res.drawable.light
+    override val backgroundOverlay: Color = Color(0xFF097381).copy(alpha = 0.2f)
+    override val resetButtonColor: Color = Color(0xFF1A60E9).copy(alpha = 0.5f)
+    override val containerGradient: List<Color> = listOf(
+        Color.White.copy(alpha = 0.3f),
+        Color.White.copy(alpha = 0.1f)
+    )
+    override val textColor: Color = Color.Black
+}
 
-
-
-
-val LightTheme = mapOf(
-    "background_image" to Res.drawable.light,
-)
-
-val DarkTheme = mapOf(
-    "background_image" to Res.drawable.dark,
-)
+class DarkTheme : AppTheme {
+    override val backgroundImage: DrawableResource = Res.drawable.dark
+    override val backgroundOverlay: Color = Color(0xFF097381).copy(alpha = 0.2f)
+    override val resetButtonColor: Color = Color(0xFF3277FF)
+    override val containerGradient: List<Color> = listOf(
+        Color(0xFF797583).copy(alpha = 0.2f),
+        Color(0xFF363567).copy(alpha = 0.2f)
+    )
+    override val textColor: Color = Color.White
+}
 
 val Theme = mapOf(
-    "light" to LightTheme,
-    "dark" to DarkTheme,
+    "light" to LightTheme(),
+    "dark" to DarkTheme(),
 )
-
-

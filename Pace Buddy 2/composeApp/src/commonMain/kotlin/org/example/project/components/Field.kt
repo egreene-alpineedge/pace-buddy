@@ -24,8 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,12 +37,17 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview(showBackground = true)
 fun Field(
     label: String,
-    value: String,
+    value: String?,
+    transform: (String) -> String = { it },
     onValueChange: (String) -> Unit,
-    onBlur: () -> Unit
+    onBlur: () -> Unit,
 ) {
 
-    var text by remember { mutableStateOf(value) }
+    var text by remember(value) {
+        mutableStateOf(
+            TextFieldValue(text = value.orEmpty())
+        )
+    }
 
     Row (
         modifier = Modifier
@@ -56,7 +63,6 @@ fun Field(
             fontSize = 22.sp,
             fontFamily = UrbanistFontFamily(),
             fontWeight = FontWeight.Medium,
-            color = Color.Black
         )
         Box(
             modifier = Modifier
@@ -75,9 +81,18 @@ fun Field(
         ) {
             BasicTextField(
                 value = text,
+                singleLine = true,
                 onValueChange = {
-                    text = it
-                    onValueChange(it)
+
+                    val transformedText = transform(it.text)
+
+                    text = TextFieldValue(
+                        text = transformedText,
+                        selection = TextRange(transformedText.length) // cursor at end
+                    )
+
+//                    text = it
+//                    onValueChange(transformedText)
                 },
                 textStyle = TextStyle(
                     fontSize = 22.sp,
@@ -91,6 +106,7 @@ fun Field(
                     .padding(0.dp)
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused) {
+                            onValueChange(text.text)
                             onBlur()
                         }
 
