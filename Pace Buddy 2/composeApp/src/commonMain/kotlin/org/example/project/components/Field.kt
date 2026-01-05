@@ -37,17 +37,17 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview(showBackground = true)
 fun Field(
     label: String,
-    value: String?,
+    value: TextFieldValue,
     transform: (String) -> String = { it },
-    onValueChange: (String) -> Unit,
+    onValueChange: (TextFieldValue) -> Unit,
     onBlur: () -> Unit,
 ) {
 
-    var text by remember(value) {
-        mutableStateOf(
-            TextFieldValue(text = value.orEmpty())
-        )
-    }
+//    var text by remember(value) {
+//        mutableStateOf(
+//            TextFieldValue(text = value.orEmpty())
+//        )
+//    }
 
     Row (
         modifier = Modifier
@@ -80,19 +80,20 @@ fun Field(
 
         ) {
             BasicTextField(
-                value = text,
+                value = value,
                 singleLine = true,
-                onValueChange = {
+                onValueChange = { newValue ->
 
-                    val transformedText = transform(it.text)
+                    val transformed = transform(newValue.text)
 
-                    text = TextFieldValue(
-                        text = transformedText,
-                        selection = TextRange(transformedText.length) // cursor at end
+                    onValueChange(
+                        newValue.copy(
+                            text = transformed,
+                            selection = TextRange(transformed.length) // cursor stays correct
+                        )
                     )
 
-//                    text = it
-//                    onValueChange(transformedText)
+//                    onValueChange(transform(it))
                 },
                 textStyle = TextStyle(
                     fontSize = 22.sp,
@@ -106,7 +107,6 @@ fun Field(
                     .padding(0.dp)
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused) {
-                            onValueChange(text.text)
                             onBlur()
                         }
 
