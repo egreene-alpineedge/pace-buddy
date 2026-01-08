@@ -17,13 +17,13 @@ class CalculationService {
         return distance / time
     }
 
-    // Convert seconds per mile to miles per hour
+    // Speed = 1 / Pace
     fun calculateSpeed(pace: Double): Double {
-        return 3600.0/pace
+        return 1/pace
     }
 
-    // Convert miles per hour to minutes per mile
+    // Pace = 1 / Speed
     fun calculatePace(speed: Double): Double {
-        return 3600/speed
+        return 1/speed
     }
 }

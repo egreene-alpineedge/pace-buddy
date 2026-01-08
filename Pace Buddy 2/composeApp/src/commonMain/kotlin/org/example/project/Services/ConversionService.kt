@@ -1,6 +1,7 @@
 package org.example.project.Services
 
 import org.example.project.DistanceUnit
+import org.example.project.PaceUnit
 import org.example.project.SpeedUnit
 
 class ConversionService {
@@ -19,6 +20,14 @@ class ConversionService {
 
     fun fromMetersPerSecond(value: Double, toUnit: SpeedUnit): Double {
         return value / toUnit.metersPerSecondsFactor
+    }
+
+    fun toSecondsPerMeter(value: Double, fromUnit: PaceUnit): Double {
+        return value * fromUnit.secondsPerMeterFactor
+    }
+
+    fun fromSecondsPerMeter(value: Double, toUnit: PaceUnit): Double {
+        return value / toUnit.secondsPerMeterFactor
     }
 
 }

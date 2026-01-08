@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -36,9 +37,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview(showBackground = true)
-fun GreenPicker() {
-//    var offset by remember { mutableStateOf(0) }
-
+fun GreenPicker(
+    leftLabel: String,
+    rightLabel: String,
+    onToggle: (String) -> Unit
+) {
     var left by remember { mutableStateOf(true) }
 
     val offset by animateDpAsState(
@@ -51,19 +54,28 @@ fun GreenPicker() {
             .width(90.dp)
             .height(50.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF4FEE5F).copy(alpha = 0.5f))
+            .background(Color(0xFF4FEE5F).copy(alpha = if (leftLabel == "") 0f else 0.5f))
             .border(
                 width = 1.dp,
                 brush = Brush.verticalGradient(
-                    listOf(Color.White, Color.Transparent)
+                    listOf(Color.White.copy(alpha = if (leftLabel == "") 0f else 0.5f), Color.Transparent)
                 ),
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(horizontal = 8.dp, vertical = 6.dp)
-            .clickable { left = !left },
+            .clickable {
+                val newLeft = !left
+                left = newLeft
+                if (newLeft) {
+                    onToggle(leftLabel)
+                } else {
+                    onToggle(rightLabel)
+                }
+
+            }
+            .alpha(if (leftLabel == "") 0f else 1f),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-
     ) {
         Box {
             Row(
@@ -105,7 +117,7 @@ fun GreenPicker() {
                 ) {
                     Spacer(Modifier.weight(1f))
                     Text(
-                        text = "mi",
+                        text = leftLabel,
                         textAlign = TextAlign.Center,
                         fontFamily = UrbanistFontFamily(),
                         fontSize = 12.sp,
@@ -125,7 +137,7 @@ fun GreenPicker() {
                 ) {
                     Spacer(Modifier.weight(1f))
                     Text(
-                        text = "km",
+                        text = rightLabel,
                         textAlign = TextAlign.Center,
                         fontFamily = UrbanistFontFamily(),
                         fontSize = 12.sp,

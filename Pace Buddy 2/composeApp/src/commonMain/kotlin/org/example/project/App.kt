@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +51,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.example.project.Services.CalculationService
 import org.example.project.Services.ConversionService
 import org.example.project.components.Field
@@ -56,6 +58,7 @@ import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 @Composable
 fun fadedBorder(): BorderStroke {
@@ -74,7 +77,11 @@ fun fadedBorder(): BorderStroke {
 }
 
 fun convertValueToDistanceText(value: Double): String {
-    val stringValue = value.toString()
+    if (value == 0.0) return ""
+
+    val roundedValue = (value * 1000).roundToInt().toDouble() / 1000
+
+    val stringValue = roundedValue.toString()
 
     return if (stringValue.endsWith(".0")) {
         stringValue.dropLast(2)
@@ -83,7 +90,11 @@ fun convertValueToDistanceText(value: Double): String {
     }
 }
 fun convertValueToSpeedText(value: Double): String {
-    val stringValue = value.toString()
+    if (value == 0.0) return ""
+
+    val roundedValue = (value * 1000).roundToInt().toDouble() / 1000
+
+    val stringValue = roundedValue.toString()
 
     return if (stringValue.endsWith(".0")) {
         stringValue.dropLast(2)
@@ -92,6 +103,8 @@ fun convertValueToSpeedText(value: Double): String {
     }
 }
 fun convertValueToTimeText(value: Double): String {
+    if (value == 0.0) return ""
+
     var temp = value
     val hours = floor(temp / 3600).toInt()
     temp %= 3600
@@ -100,7 +113,7 @@ fun convertValueToTimeText(value: Double): String {
     val seconds = temp.toInt()
 
     val hoursText = "$hours"
-    val minutesText = if (minutes < 10) "0$minutes" else "$minutes"
+    val minutesText = if (minutes < 10 && hours != 0) "0$minutes" else "$minutes"
     val secondsText = if (seconds < 10) "0$seconds" else "$seconds"
 
     return if (hours == 0) {
@@ -170,16 +183,25 @@ fun App() {
     var speedTextField by remember {
         mutableStateOf(TextFieldValue(""))
     }
-
-    var paceText by remember { mutableStateOf("") }
+    var paceTextField by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
 
     var fieldScreenPosition by remember { mutableStateOf(Offset.Zero) }
     var splitScreenPosition by remember { mutableStateOf(Offset.Zero) }
 
-    var count by remember { mutableStateOf(3) }
+    var changesMade by remember {
+        mutableStateOf(false)
+    }
 
 
-    fun updateUI() {
+    fun updateFields() {
+
+        // Don't update if no changes were made
+        if (!changesMade) {
+            return
+        }
+
         val distanceValue = viewModel.distance
         if (distanceValue != null) {
             distanceTextField = distanceTextField.copy(
@@ -203,6 +225,16 @@ fun App() {
                 selection = TextRange(speedTextField.text.length)
             )
         }
+
+        val paceValue = viewModel.pace
+        if (paceValue != null) {
+            paceTextField = paceTextField.copy(
+                text = convertValueToTimeText(paceValue),
+                selection = TextRange(paceTextField.text.length)
+            )
+        }
+
+        changesMade = false
     }
 
     MaterialTheme {
@@ -254,6 +286,23 @@ fun App() {
 
                         Spacer(Modifier.weight(1f))
 
+                        Image(
+                            imageResource(Theme[theme]!!.switchIcon),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(32.dp)
+                                .height(32.dp)
+                                .clickable {
+                                    val currentTheme = theme
+                                    if (currentTheme == "light") {
+                                        theme = "dark"
+                                    } else {
+                                        theme = "light"
+                                    }
+
+                                }
+                        )
+
                         Button(
                             modifier = Modifier.size(width = 80.dp, height = 40.dp),
                             onClick = {
@@ -262,6 +311,7 @@ fun App() {
                                 distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
                                 timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
                                 speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
+                                paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Theme[theme]!!.resetButtonColor,
@@ -360,13 +410,14 @@ fun App() {
                                 value = timeTextField,
                                 transform = { handleTimeValueChange(it) }, // As we're typing
                                 onValueChange = {
+                                    changesMade = true
                                     timeTextField = it
                                 },
                                 onBlur = {
                                     if (timeTextField.text != "") {
                                         val timeValue = convertTimeTextToValue(timeTextField.text)
                                         viewModel.onBlurTimeField(value = timeValue)
-                                        updateUI()
+                                        updateFields()
                                     }
                                 }
                             )
@@ -375,45 +426,71 @@ fun App() {
                                 label = "Distance",
                                 value = distanceTextField,
                                 onValueChange = {
+                                    changesMade = true
                                     distanceTextField = it
                                 },
                                 onBlur = {
                                     val distanceValue = distanceTextField.text.toDoubleOrNull()
                                     if (distanceValue != null) {
                                         viewModel.onBlurDistanceField(value = distanceValue)
-                                        updateUI()
+                                        updateFields()
                                     }
+                                },
+                                leftLabel = "mi",
+                                rightLabel = "km",
+                                onToggle = { unitString ->
+                                    changesMade = true
+                                    viewModel.onToggleDistanceUnit(unitString)
+                                    updateFields()
                                 }
                             )
-
+                            Field(
+                                label = "Pace",
+                                value = paceTextField,
+                                transform = { handleTimeValueChange(it) }, // As we're typing
+                                onValueChange = {
+                                    changesMade = true
+                                    paceTextField = it
+                                },
+                                onBlur = {
+                                    if (paceTextField.text != "") {
+                                        val paceValue = convertTimeTextToValue(paceTextField.text)
+                                        viewModel.onBlurPaceField(value = paceValue)
+                                        updateFields()
+                                    }
+                                },
+                                leftLabel = "/mi",
+                                rightLabel = "/km",
+                                onToggle = { unitString ->
+                                    changesMade = true
+                                    viewModel.onTogglePaceUnit(unitString)
+                                    updateFields()
+                                }
+                            )
                             Field(
                                 label = "Speed",
                                 value = speedTextField,
                                 onValueChange = {
+                                    changesMade = true
                                     speedTextField = it
                                 },
                                 onBlur = {
                                     val speedValue = speedTextField.text.toDoubleOrNull()
                                     if (speedValue != null) {
                                         viewModel.onBlurSpeedField(value = speedValue)
-                                        updateUI()
+                                        updateFields()
                                     }
-
+                                },
+                                leftLabel = "mph",
+                                rightLabel = "kph",
+                                onToggle = { unitString ->
+                                    changesMade = true
+                                    viewModel.onToggleSpeedUnit(unitString)
+                                    updateFields()
                                 }
                             )
 
-                            //
-//                            Field(
-//                                label = "Pace",
-//                                value = paceText,
-//                                onValueChange = {
-//                                    paceText = it
-//                                },
-//                                onBlur = {
-//                                    viewModel.onBlurPaceField(text = paceText)
-//                                }
-//                            )
-//
+
                         }
                     }
 
@@ -427,7 +504,10 @@ fun App() {
                                 shape = RoundedCornerShape(20.dp)
                             )
                             .clip(RoundedCornerShape(20.dp))
-                            .height((24 * 2 + 40 * count).dp)
+                            .height(
+                                if (viewModel.splits.count() == 0) 0.dp
+                                else (28*viewModel.splits.count() + 12*(viewModel.splits.count()-1) + 24 + 24 + 2).dp
+                            )
                             .onGloballyPositioned { coordinates: LayoutCoordinates ->
                                 // Converts the top-left corner (Offset.Zero) of the composable
                                 // to its position relative to the window/screen.
@@ -476,12 +556,13 @@ fun App() {
 
                         Column(
                             modifier = Modifier
-                                .padding(24.dp),
+                                .padding(24.dp)
+                                .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            SplitRow(split = "1 mi", time = "7m 12s")
-                            SplitRow(split = "2 mi", time = "14m 24s")
-                            SplitRow(split = "3 mi", time = "21m 36s")
+                            viewModel.splits.forEach { split ->
+                                SplitRow(split = "${convertValueToDistanceText(split.length)} mi", time = convertValueToTimeText(split.time))
+                            }
                         }
                     }
 

@@ -41,13 +41,10 @@ fun Field(
     transform: (String) -> String = { it },
     onValueChange: (TextFieldValue) -> Unit,
     onBlur: () -> Unit,
+    leftLabel: String? = null,
+    rightLabel: String? = null,
+    onToggle: ((String) -> Unit)? = null
 ) {
-
-//    var text by remember(value) {
-//        mutableStateOf(
-//            TextFieldValue(text = value.orEmpty())
-//        )
-//    }
 
     Row (
         modifier = Modifier
@@ -84,6 +81,8 @@ fun Field(
                 singleLine = true,
                 onValueChange = { newValue ->
 
+                    if (newValue.text == value.text) return@BasicTextField
+
                     val transformed = transform(newValue.text)
 
                     onValueChange(
@@ -93,7 +92,6 @@ fun Field(
                         )
                     )
 
-//                    onValueChange(transform(it))
                 },
                 textStyle = TextStyle(
                     fontSize = 22.sp,
@@ -116,6 +114,19 @@ fun Field(
 
         Spacer(Modifier.weight(1f))
 
-        GreenPicker()
+        if (leftLabel != null && rightLabel != null) {
+            GreenPicker(
+                leftLabel = leftLabel,
+                rightLabel = rightLabel,
+                onToggle = {
+                    println("Toggled")
+                    println(it)
+                    onToggle?.invoke(it)
+                }
+            )
+        } else {
+            GreenPicker(leftLabel = "", rightLabel = "", onToggle = {})
+        }
+
     }
 }
