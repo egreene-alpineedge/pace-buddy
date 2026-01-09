@@ -49,21 +49,7 @@ class AppViewModel(
 
         time = value
 
-        val t = time!!
-
-        // Calculate Speed
-        if (distance != null) {
-            val d = distance!!
-            val s = calculateSpeed(time = t, distance = d)
-            speed = s
-            pace = calculatePace(speed = s)
-        }
-
-        // Calculate Distance
-        else if (speed != null) {
-            val s = speed!!
-            distance = calculateDistance(time = t, speed = s)
-        }
+        updateFromTime()
 
     }
     fun onBlurDistanceField(value: Double) {
@@ -202,6 +188,26 @@ class AppViewModel(
         else if (distance != null) {
             val d = distance!!
             time = calculateTime(distance = d, speed = s)
+        }
+
+        // Update Splits
+        updateSplits()
+    }
+    fun updateFromTime() {
+        val t = time!!
+
+        // Calculate Speed
+        if (distance != null) {
+            val d = distance!!
+            val s = calculateSpeed(time = t, distance = d)
+            speed = s
+            pace = calculatePace(speed = s)
+        }
+
+        // Calculate Distance
+        else if (speed != null) {
+            val s = speed!!
+            distance = calculateDistance(time = t, speed = s)
         }
 
         // Update Splits

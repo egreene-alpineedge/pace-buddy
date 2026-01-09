@@ -47,10 +47,17 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.example.project.Services.CalculationService
 import org.example.project.Services.ConversionService
 import org.example.project.components.Field
@@ -59,6 +66,8 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.floor
 import kotlin.math.roundToInt
+import kotlin.text.contains
+import kotlin.text.get
 
 @Composable
 fun fadedBorder(): BorderStroke {
@@ -123,8 +132,23 @@ fun convertValueToTimeText(value: Double): String {
     }
 
 }
+fun handleDecimalValueChange(text: String): String {
+
+    val newCharIsValid = text.last().isDigit() || text.last() == '.'
+    if (!newCharIsValid) {
+       return text.dropLast(1)
+    }
+
+    return if (text.last() == '.' && text.dropLast(1).contains('.')) {
+        text.dropLast(1)
+    } else {
+        text
+    }
+
+
+}
 fun handleTimeValueChange(text: String): String {
-    val input = text.filter { it != ':' }
+    val input = text.filter { it.isDigit() }
 
     if (input.length > 6) {
         return text.dropLast(1)
@@ -164,7 +188,10 @@ fun convertTimeTextToValue(text: String): Double {
 
 @Composable
 @Preview(showBackground = true)
-fun App() {
+fun App(
+    prefs: DataStore<Preferences>
+) {
+    val scope = rememberCoroutineScope()
     val viewModel = remember {
         AppViewModel(
             calculationService = CalculationService(),
@@ -172,7 +199,14 @@ fun App() {
         )
     }
 
-    var theme by remember { mutableStateOf("light") }
+
+    val theme by prefs
+        .data
+        .map {
+            val themeKey = stringPreferencesKey("theme")
+            it[themeKey] ?: "light"
+        }
+        .collectAsState("light")
 
     var distanceTextField by remember {
         mutableStateOf(TextFieldValue(""))
@@ -293,13 +327,19 @@ fun App() {
                                 .width(32.dp)
                                 .height(32.dp)
                                 .clickable {
-                                    val currentTheme = theme
-                                    if (currentTheme == "light") {
-                                        theme = "dark"
-                                    } else {
-                                        theme = "light"
-                                    }
+                                    scope.launch {
+                                        prefs.edit { dataStore ->
+                                            val themeKey = stringPreferencesKey("theme")
 
+                                            val currentTheme = theme
+
+                                            if (currentTheme == "light") {
+                                                dataStore[themeKey] = "dark"
+                                            } else {
+                                                dataStore[themeKey] = "light"
+                                            }
+                                        }
+                                    }
                                 }
                         )
 
@@ -406,25 +446,9 @@ fun App() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ){
                             Field(
-                                label = "Time",
-                                value = timeTextField,
-                                transform = { handleTimeValueChange(it) }, // As we're typing
-                                onValueChange = {
-                                    changesMade = true
-                                    timeTextField = it
-                                },
-                                onBlur = {
-                                    if (timeTextField.text != "") {
-                                        val timeValue = convertTimeTextToValue(timeTextField.text)
-                                        viewModel.onBlurTimeField(value = timeValue)
-                                        updateFields()
-                                    }
-                                }
-                            )
-
-                            Field(
                                 label = "Distance",
                                 value = distanceTextField,
+                                transform = { handleDecimalValueChange(it) },
                                 onValueChange = {
                                     changesMade = true
                                     distanceTextField = it
@@ -442,8 +466,30 @@ fun App() {
                                     changesMade = true
                                     viewModel.onToggleDistanceUnit(unitString)
                                     updateFields()
-                                }
+                                },
+                                keyboardType = KeyboardType.Decimal
+
                             )
+
+                            Field(
+                                label = "Time",
+                                value = timeTextField,
+                                transform = { handleTimeValueChange(it) }, // As we're typing
+                                onValueChange = {
+                                    changesMade = true
+                                    timeTextField = it
+                                },
+                                onBlur = {
+                                    if (timeTextField.text != "") {
+                                        val timeValue = convertTimeTextToValue(timeTextField.text)
+                                        viewModel.onBlurTimeField(value = timeValue)
+                                        updateFields()
+                                    }
+                                },
+                                keyboardType = KeyboardType.Number
+                            )
+
+
                             Field(
                                 label = "Pace",
                                 value = paceTextField,
@@ -465,11 +511,13 @@ fun App() {
                                     changesMade = true
                                     viewModel.onTogglePaceUnit(unitString)
                                     updateFields()
-                                }
+                                },
+                                keyboardType = KeyboardType.Number
                             )
                             Field(
                                 label = "Speed",
                                 value = speedTextField,
+                                transform = { handleDecimalValueChange(it) },
                                 onValueChange = {
                                     changesMade = true
                                     speedTextField = it
@@ -487,7 +535,8 @@ fun App() {
                                     changesMade = true
                                     viewModel.onToggleSpeedUnit(unitString)
                                     updateFields()
-                                }
+                                },
+                                keyboardType = KeyboardType.Decimal
                             )
 
 
