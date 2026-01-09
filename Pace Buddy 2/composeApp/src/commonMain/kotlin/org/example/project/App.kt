@@ -134,6 +134,8 @@ fun convertValueToTimeText(value: Double): String {
 }
 fun handleDecimalValueChange(text: String): String {
 
+    if (text == "") return ""
+
     val newCharIsValid = text.last().isDigit() || text.last() == '.'
     if (!newCharIsValid) {
        return text.dropLast(1)
@@ -467,8 +469,8 @@ fun App(
                                     viewModel.onToggleDistanceUnit(unitString)
                                     updateFields()
                                 },
-                                keyboardType = KeyboardType.Decimal
-
+                                keyboardType = KeyboardType.Decimal,
+                                prefs = prefs
                             )
 
                             Field(
@@ -486,7 +488,8 @@ fun App(
                                         updateFields()
                                     }
                                 },
-                                keyboardType = KeyboardType.Number
+                                keyboardType = KeyboardType.Number,
+                                prefs = prefs
                             )
 
 
@@ -512,7 +515,8 @@ fun App(
                                     viewModel.onTogglePaceUnit(unitString)
                                     updateFields()
                                 },
-                                keyboardType = KeyboardType.Number
+                                keyboardType = KeyboardType.Number,
+                                prefs = prefs
                             )
                             Field(
                                 label = "Speed",
@@ -536,7 +540,8 @@ fun App(
                                     viewModel.onToggleSpeedUnit(unitString)
                                     updateFields()
                                 },
-                                keyboardType = KeyboardType.Decimal
+                                keyboardType = KeyboardType.Decimal,
+                                prefs = prefs
                             )
 
 
@@ -610,7 +615,11 @@ fun App(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             viewModel.splits.forEach { split ->
-                                SplitRow(split = "${convertValueToDistanceText(split.length)} mi", time = convertValueToTimeText(split.time))
+                                SplitRow(
+                                    split = "${convertValueToDistanceText(split.length)} mi",
+                                    time = convertValueToTimeText(split.time),
+                                    textColor = Theme[theme]!!.textColor
+                                )
                             }
                         }
                     }

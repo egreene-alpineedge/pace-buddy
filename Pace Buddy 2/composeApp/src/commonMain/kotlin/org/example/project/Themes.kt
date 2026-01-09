@@ -14,6 +14,7 @@ interface AppTheme {
     val resetButtonColor: Color
     val containerGradient: List<Color>
     val textColor: Color
+    val textFieldTransparency: Float
     val switchIcon: DrawableResource
 }
 
@@ -26,6 +27,7 @@ class LightTheme : AppTheme {
         Color.White.copy(alpha = 0.1f)
     )
     override val textColor: Color = Color.Black
+    override val textFieldTransparency: Float = 0.55f
     override val switchIcon: DrawableResource = Res.drawable.MoonStars
 }
 
@@ -38,6 +40,7 @@ class DarkTheme : AppTheme {
         Color(0xFF363567).copy(alpha = 0.2f)
     )
     override val textColor: Color = Color.White
+    override val textFieldTransparency: Float = 0.4f
     override val switchIcon: DrawableResource = Res.drawable.Sun
 }
 

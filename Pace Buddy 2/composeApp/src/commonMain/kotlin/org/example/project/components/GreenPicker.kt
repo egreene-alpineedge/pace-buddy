@@ -40,7 +40,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun GreenPicker(
     leftLabel: String,
     rightLabel: String,
-    onToggle: (String) -> Unit
+    onToggle: (String) -> Unit,
+    textColor: Color
 ) {
     var left by remember { mutableStateOf(true) }
 
@@ -122,7 +123,7 @@ fun GreenPicker(
                         fontFamily = UrbanistFontFamily(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
+                        color = textColor,
                     )
                     Spacer(Modifier.weight(1f))
                 }
@@ -142,7 +143,7 @@ fun GreenPicker(
                         fontFamily = UrbanistFontFamily(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
+                        color = textColor,
 
                         )
                     Spacer(Modifier.weight(1f))

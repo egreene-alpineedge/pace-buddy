@@ -11,7 +11,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SplitRow(split: String, time: String) {
+fun SplitRow(
+    split: String,
+    time: String,
+    textColor: Color
+) {
     Row (
         modifier = Modifier
             .height(28.dp),
@@ -22,7 +26,7 @@ fun SplitRow(split: String, time: String) {
             fontFamily = UrbanistFontFamily(),
             fontSize = 24.sp,
             fontWeight = FontWeight.Normal,
-            color = Color.Black,
+            color = textColor,
         )
         Spacer(Modifier.weight(1f))
         Text(
@@ -30,7 +34,7 @@ fun SplitRow(split: String, time: String) {
             fontFamily = UbuntoFontFamily(),
             fontSize = 24.sp,
             fontWeight = FontWeight.Normal,
-            color = Color.Black,
+            color = textColor,
         )
     }
 }

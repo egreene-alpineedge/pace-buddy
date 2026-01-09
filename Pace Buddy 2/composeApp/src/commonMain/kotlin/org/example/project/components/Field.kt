@@ -1,5 +1,6 @@
 package org.example.project.components
 
+import Theme
 import UrbanistFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,11 +38,16 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview(showBackground = true)
 fun Field(
+    prefs: DataStore<Preferences>,
     label: String,
     value: TextFieldValue,
     transform: (String) -> String = { it },
@@ -53,6 +60,14 @@ fun Field(
 ) {
 
     val focusManager = LocalFocusManager.current
+
+    val theme by prefs
+        .data
+        .map {
+            val themeKey = stringPreferencesKey("theme")
+            it[themeKey] ?: "light"
+        }
+        .collectAsState("light")
 
     Row (
         modifier = Modifier
@@ -68,12 +83,13 @@ fun Field(
             fontSize = 22.sp,
             fontFamily = UrbanistFontFamily(),
             fontWeight = FontWeight.Medium,
+            color = Theme[theme]!!.textColor
         )
         Box(
             modifier = Modifier
                 .width(120.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.White.copy(alpha = 0.55f))
+                .background(Color.White.copy(alpha = Theme[theme]!!.textFieldTransparency))
                 .border(
                     width = 1.dp,
                     brush = Brush.verticalGradient(
@@ -114,8 +130,10 @@ fun Field(
                     fontSize = 22.sp,
                     fontFamily = UrbanistFontFamily(),
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = Theme[theme]!!.textColor
                 ),
+
                 modifier = Modifier
                     .width(120.dp)
                     .background(Color.Transparent)
@@ -139,10 +157,16 @@ fun Field(
                     println("Toggled")
                     println(it)
                     onToggle?.invoke(it)
-                }
+                },
+                textColor = Theme[theme]!!.textColor
             )
         } else {
-            GreenPicker(leftLabel = "", rightLabel = "", onToggle = {})
+            GreenPicker(
+                leftLabel = "",
+                rightLabel = "",
+                onToggle = {},
+                textColor = Theme[theme]!!.textColor
+            )
         }
 
     }
