@@ -30,6 +30,8 @@ class AppViewModel(
     var speedUnit by mutableStateOf<SpeedUnit>(SpeedUnit.MI_HR)
         private set
 
+    var split by mutableStateOf<Double?>(null)
+        private set
     var splits by mutableStateOf<List<Split>>(mutableListOf())
         private  set
     var splitUnit by mutableStateOf<DistanceUnit>(DistanceUnit.MI)
@@ -41,6 +43,7 @@ class AppViewModel(
         distance = null
         pace = null
         speed = null
+        split = null
         splits = mutableListOf()
     }
 
@@ -77,6 +80,14 @@ class AppViewModel(
         pace = value
         val p = pace!!
         updateFromPace(p)
+    }
+    fun onBlurSplitField(value: Double) {
+        if (value == 0.0) return
+
+        print("Split Blurred")
+        split = value
+
+        updateSplits()
     }
 
     fun onToggleDistanceUnit(unitString: String) {
@@ -132,6 +143,24 @@ class AppViewModel(
             val convertedSpeed = convertSpeed(value = s, fromUnit = oldUnit, toUnit = newUnit)
             speed = convertedSpeed
             updateFromSpeed(convertedSpeed)
+        }
+    }
+    fun onToggleSplitUnit(unitString: String) {
+        val oldUnit = splitUnit
+        val newUnit = when (unitString) {
+            "mi" -> DistanceUnit.MI
+            "km" -> DistanceUnit.KM
+            else -> DistanceUnit.MI
+        }
+
+        splitUnit = newUnit
+
+        val sp = split
+
+        if (sp != null) {
+            val convertedSplit = convertDistance(value = sp, fromUnit = oldUnit, toUnit = newUnit)
+            split = convertedSplit
+            updateSplits()
         }
     }
 
@@ -218,13 +247,14 @@ class AppViewModel(
         val t = time
         val d = distance
         val s = speed
-        if (t == null || d == null || s == null) {
+        val sp = split
+        if (t == null || d == null || s == null || sp == null) {
             return
         }
 
         val setSplitUnit = splitUnit
 
-        val splitInterval = setSplitUnit.metersFactor
+        val splitInterval = sp * setSplitUnit.metersFactor
 
         // Convert Distance to meters
         val distanceInMeters = conversionService.toMeters(value = d, fromUnit = distanceUnit)

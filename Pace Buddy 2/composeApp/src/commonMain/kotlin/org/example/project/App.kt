@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import createDataStore
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.example.project.Services.CalculationService
@@ -67,7 +69,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.text.contains
-import kotlin.text.get
 
 @Composable
 fun fadedBorder(): BorderStroke {
@@ -85,20 +86,7 @@ fun fadedBorder(): BorderStroke {
     )
 }
 
-fun convertValueToDistanceText(value: Double): String {
-    if (value == 0.0) return ""
-
-    val roundedValue = (value * 1000).roundToInt().toDouble() / 1000
-
-    val stringValue = roundedValue.toString()
-
-    return if (stringValue.endsWith(".0")) {
-        stringValue.dropLast(2)
-    } else {
-        stringValue
-    }
-}
-fun convertValueToSpeedText(value: Double): String {
+fun convertValueToDecimalText(value: Double): String {
     if (value == 0.0) return ""
 
     val roundedValue = (value * 1000).roundToInt().toDouble() / 1000
@@ -121,16 +109,30 @@ fun convertValueToTimeText(value: Double): String {
     temp %= 60
     val seconds = temp.toInt()
 
+//    val hoursText = "$hours"
+//    val minutesText = "$minutes"
+//    val secondsText = "$seconds"
+
+//    return if (hours == 0) {
+//        if (minutes == 0) {
+//            "${secondsText}s"
+//        } else {
+//            "${minutesText}m ${secondsText}s"
+//        }
+//
+//    } else {
+//        "${hoursText}h ${minutesText}m ${secondsText}s"
+//    }
+
     val hoursText = "$hours"
     val minutesText = if (minutes < 10 && hours != 0) "0$minutes" else "$minutes"
     val secondsText = if (seconds < 10) "0$seconds" else "$seconds"
 
     return if (hours == 0) {
-        "$minutesText:$secondsText"
+        "${minutesText}:${secondsText}"
     } else {
-        "$hoursText:$minutesText:$secondsText"
+        "${hoursText}:${minutesText}:${secondsText}"
     }
-
 }
 fun handleDecimalValueChange(text: String): String {
 
@@ -169,6 +171,14 @@ fun handleTimeValueChange(text: String): String {
 
 }
 fun convertTimeTextToValue(text: String): Double {
+
+    // first convert the h, m, s to :
+//    val noSpaces = text.replace(" ", "")
+//    var colonText = noSpaces.replace(Regex("\\D"), ":")
+//    if (colonText.endsWith(":")) {
+//        colonText = colonText.dropLast(1)
+//    }
+
     val parts = text.split(":")
     if (parts.count() == 2) {
         val minutes = parts[0].toDouble()
@@ -189,9 +199,17 @@ fun convertTimeTextToValue(text: String): Double {
 
 
 @Composable
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+//    heightDp = 392,
+//    widthDp = 850
+)
 fun App(
-    prefs: DataStore<Preferences>
+    prefs: DataStore<Preferences> = remember {
+        createDataStore(
+            producePath = { "Fake" }
+        )
+    }
 ) {
     val scope = rememberCoroutineScope()
     val viewModel = remember {
@@ -200,7 +218,6 @@ fun App(
             conversionService = ConversionService()
         )
     }
-
 
     val theme by prefs
         .data
@@ -223,6 +240,10 @@ fun App(
         mutableStateOf(TextFieldValue(""))
     }
 
+    var splitTextField by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+
     var fieldScreenPosition by remember { mutableStateOf(Offset.Zero) }
     var splitScreenPosition by remember { mutableStateOf(Offset.Zero) }
 
@@ -241,7 +262,7 @@ fun App(
         val distanceValue = viewModel.distance
         if (distanceValue != null) {
             distanceTextField = distanceTextField.copy(
-                text = convertValueToDistanceText(distanceValue),
+                text = convertValueToDecimalText(distanceValue),
                 selection = TextRange(distanceTextField.text.length)
             )
         }
@@ -257,7 +278,7 @@ fun App(
         val speedValue = viewModel.speed
         if (speedValue != null) {
             speedTextField = speedTextField.copy(
-                text = convertValueToSpeedText(speedValue),
+                text = convertValueToDecimalText(speedValue),
                 selection = TextRange(speedTextField.text.length)
             )
         }
@@ -267,6 +288,14 @@ fun App(
             paceTextField = paceTextField.copy(
                 text = convertValueToTimeText(paceValue),
                 selection = TextRange(paceTextField.text.length)
+            )
+        }
+
+        val splitValue = viewModel.split
+        if (splitValue != null) {
+            splitTextField = splitTextField.copy(
+                text = convertValueToDecimalText(splitValue),
+                selection = TextRange(splitTextField.text.length)
             )
         }
 
@@ -328,7 +357,10 @@ fun App(
                             modifier = Modifier
                                 .width(32.dp)
                                 .height(32.dp)
-                                .clickable {
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
                                     scope.launch {
                                         prefs.edit { dataStore ->
                                             val themeKey = stringPreferencesKey("theme")
@@ -354,6 +386,7 @@ fun App(
                                 timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
                                 speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
                                 paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
+                                splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Theme[theme]!!.resetButtonColor,
@@ -393,7 +426,7 @@ fun App(
                                     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                                 )
                             )
-                            .height(300.dp)
+                            .height(360.dp)
                             .fillMaxWidth()
                             .onGloballyPositioned { coordinates: LayoutCoordinates ->
                                 // Converts the top-left corner (Offset.Zero) of the composable
@@ -473,6 +506,41 @@ fun App(
                                 prefs = prefs
                             )
 
+//                            Box(
+//                                contentAlignment = Alignment.Center,
+//                                modifier = Modifier
+//                                    .width(130.dp)
+//                                    .clip(RoundedCornerShape(8.dp))
+//                                    .background(Color.White.copy(alpha = Theme[theme]!!.textFieldTransparency))
+//                                    .border(
+//                                        width = 1.dp,
+//                                        brush = Brush.verticalGradient(
+//                                            listOf(Color.White, Color.Transparent)
+//                                        ),
+//                                        shape = RoundedCornerShape(8.dp)
+//                                    )
+//                                    .padding(horizontal = 0.dp, vertical = 5.dp)
+//
+//                            ) {
+//                                BasicTextField(
+//                                    value = "22h 22m 22s",
+//                                    singleLine = true,
+//                                    onValueChange = { },
+//                                    textStyle = TextStyle(
+//                                        fontSize = 22.sp,
+//                                        fontFamily = UrbanistFontFamily(),
+//                                        fontWeight = FontWeight.Medium,
+//                                        textAlign = TextAlign.Center,
+//                                        color = Theme[theme]!!.textColor
+//                                    ),
+//
+//                                    modifier = Modifier
+//                                        .width(130.dp)
+//                                        .background(Color.Transparent)
+//                                        .padding(0.dp)
+//                                )
+//                            }
+
                             Field(
                                 label = "Time",
                                 value = timeTextField,
@@ -538,6 +606,31 @@ fun App(
                                 onToggle = { unitString ->
                                     changesMade = true
                                     viewModel.onToggleSpeedUnit(unitString)
+                                    updateFields()
+                                },
+                                keyboardType = KeyboardType.Decimal,
+                                prefs = prefs
+                            )
+                            Field(
+                                label = "Split",
+                                value = splitTextField,
+                                transform = { handleDecimalValueChange(it) },
+                                onValueChange = {
+                                    changesMade = true
+                                    splitTextField = it
+                                },
+                                onBlur = {
+                                    val splitValue = splitTextField.text.toDoubleOrNull()
+                                    if (splitValue != null) {
+                                        viewModel.onBlurSplitField(value = splitValue)
+                                        updateFields()
+                                    }
+                                },
+                                leftLabel = "mi",
+                                rightLabel = "km",
+                                onToggle = { unitString ->
+                                    changesMade = true
+                                    viewModel.onToggleSplitUnit(unitString)
                                     updateFields()
                                 },
                                 keyboardType = KeyboardType.Decimal,
@@ -616,7 +709,7 @@ fun App(
                         ) {
                             viewModel.splits.forEach { split ->
                                 SplitRow(
-                                    split = "${convertValueToDistanceText(split.length)} mi",
+                                    split = "${convertValueToDecimalText(split.length)} mi",
                                     time = convertValueToTimeText(split.time),
                                     textColor = Theme[theme]!!.textColor
                                 )

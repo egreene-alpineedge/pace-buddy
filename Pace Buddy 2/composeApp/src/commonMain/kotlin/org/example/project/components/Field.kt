@@ -86,6 +86,7 @@ fun Field(
             color = Theme[theme]!!.textColor
         )
         Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .width(120.dp)
                 .clip(RoundedCornerShape(8.dp))
@@ -97,7 +98,7 @@ fun Field(
                     ),
                     shape = RoundedCornerShape(8.dp)
                 )
-                .padding(horizontal = 22.dp, vertical = 5.dp)
+                .padding(horizontal = 0.dp, vertical = 5.dp)
 
         ) {
             BasicTextField(
