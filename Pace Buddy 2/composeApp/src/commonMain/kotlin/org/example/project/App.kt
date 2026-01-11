@@ -60,7 +60,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import createDataStore
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.example.project.Services.CalculationService
@@ -256,8 +255,6 @@ fun App(
     var changesMade by remember {
         mutableStateOf(false)
     }
-
-    val keyboardHeight = MutableStateFlow(0.dp)
 
 
     fun updateFields() {
@@ -790,39 +787,6 @@ fun App(
                         }
                     }
 
-                }
-
-                Column {
-                    Spacer(Modifier.weight(1f))
-                    Button(
-                        modifier = Modifier.size(width = 80.dp, height = 40.dp),
-                        onClick = {
-                            viewModel.onReset()
-
-                            distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
-                            timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
-                            speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
-                            paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
-                            splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme[theme]!!.resetButtonColor,
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        border = fadedBorder()
-                    ) {
-                        Text(
-                            text = "Reset",
-                            fontFamily = UrbanistFontFamily(),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = Color.White,
-                        )
-
-                    }
-                    val kbHeight by keyboardHeight.collectAsState()
-                    Spacer(modifier = Modifier.height(kbHeight))
                 }
             }
         }
