@@ -488,6 +488,9 @@ fun App(
                                     changesMade = true
                                     distanceTextField = it
                                 },
+                                onFocus = {
+                                    distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
+                                },
                                 onBlur = {
                                     val distanceValue = distanceTextField.text.toDoubleOrNull()
                                     if (distanceValue != null) {
@@ -549,6 +552,9 @@ fun App(
                                     changesMade = true
                                     timeTextField = it
                                 },
+                                onFocus = {
+                                    timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
+                                },
                                 onBlur = {
                                     if (timeTextField.text != "") {
                                         val timeValue = convertTimeTextToValue(timeTextField.text)
@@ -568,6 +574,9 @@ fun App(
                                 onValueChange = {
                                     changesMade = true
                                     paceTextField = it
+                                },
+                                onFocus = {
+                                    paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
                                 },
                                 onBlur = {
                                     if (paceTextField.text != "") {
@@ -594,6 +603,9 @@ fun App(
                                     changesMade = true
                                     speedTextField = it
                                 },
+                                onFocus = {
+                                    speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
+                                },
                                 onBlur = {
                                     val speedValue = speedTextField.text.toDoubleOrNull()
                                     if (speedValue != null) {
@@ -618,6 +630,9 @@ fun App(
                                 onValueChange = {
                                     changesMade = true
                                     splitTextField = it
+                                },
+                                onFocus = {
+                                    splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
                                 },
                                 onBlur = {
                                     val splitValue = splitTextField.text.toDoubleOrNull()
@@ -709,7 +724,7 @@ fun App(
                         ) {
                             viewModel.splits.forEach { split ->
                                 SplitRow(
-                                    split = "${convertValueToDecimalText(split.length)} mi",
+                                    split = "${convertValueToDecimalText(split.length)} ${viewModel.splitUnit.name.lowercase()}",
                                     time = convertValueToTimeText(split.time),
                                     textColor = Theme[theme]!!.textColor
                                 )

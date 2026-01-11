@@ -52,6 +52,7 @@ fun Field(
     value: TextFieldValue,
     transform: (String) -> String = { it },
     onValueChange: (TextFieldValue) -> Unit,
+    onFocus: () -> Unit,
     onBlur: () -> Unit,
     leftLabel: String? = null,
     rightLabel: String? = null,
@@ -142,6 +143,8 @@ fun Field(
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused) {
                             onBlur()
+                        } else {
+                            onFocus()
                         }
 
                     }
