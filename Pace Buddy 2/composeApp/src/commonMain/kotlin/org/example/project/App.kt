@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -211,6 +212,8 @@ fun App(
         )
     }
 ) {
+    val focusManager = LocalFocusManager.current
+
     val scope = rememberCoroutineScope()
     val viewModel = remember {
         AppViewModel(
@@ -377,16 +380,37 @@ fun App(
                                 }
                         )
 
+//                        Button(
+//                            modifier = Modifier.size(width = 80.dp, height = 40.dp),
+//                            onClick = {
+//                                viewModel.onReset()
+//
+//                                distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
+//                                timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
+//                                speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
+//                                paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
+//                                splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
+//                            },
+//                            colors = ButtonDefaults.buttonColors(
+//                                containerColor = Theme[theme]!!.resetButtonColor,
+//                            ),
+//                            shape = RoundedCornerShape(8.dp),
+//                            contentPadding = PaddingValues(0.dp),
+//                            border = fadedBorder()
+//                        ) {
+//                            Text(
+//                                text = "Reset",
+//                                fontFamily = UrbanistFontFamily(),
+//                                fontSize = 20.sp,
+//                                fontWeight = FontWeight.Normal,
+//                                color = Color.White,
+//                            )
+//
+//                        }
                         Button(
                             modifier = Modifier.size(width = 80.dp, height = 40.dp),
                             onClick = {
-                                viewModel.onReset()
-
-                                distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
-                                timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
-                                speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
-                                paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
-                                splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
+                                focusManager.clearFocus()
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Theme[theme]!!.resetButtonColor,
@@ -396,7 +420,7 @@ fun App(
                             border = fadedBorder()
                         ) {
                             Text(
-                                text = "Reset",
+                                text = "Done",
                                 fontFamily = UrbanistFontFamily(),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Normal,
@@ -506,7 +530,8 @@ fun App(
                                     updateFields()
                                 },
                                 keyboardType = KeyboardType.Decimal,
-                                prefs = prefs
+                                prefs = prefs,
+                                focusManager = focusManager
                             )
 
 //                            Box(
@@ -563,7 +588,8 @@ fun App(
                                     }
                                 },
                                 keyboardType = KeyboardType.Number,
-                                prefs = prefs
+                                prefs = prefs,
+                                focusManager = focusManager
                             )
 
 
@@ -593,7 +619,8 @@ fun App(
                                     updateFields()
                                 },
                                 keyboardType = KeyboardType.Number,
-                                prefs = prefs
+                                prefs = prefs,
+                                focusManager = focusManager
                             )
                             Field(
                                 label = "Speed",
@@ -621,7 +648,8 @@ fun App(
                                     updateFields()
                                 },
                                 keyboardType = KeyboardType.Decimal,
-                                prefs = prefs
+                                prefs = prefs,
+                                focusManager = focusManager
                             )
                             Field(
                                 label = "Split",
@@ -649,7 +677,8 @@ fun App(
                                     updateFields()
                                 },
                                 keyboardType = KeyboardType.Decimal,
-                                prefs = prefs
+                                prefs = prefs,
+                                focusManager = focusManager
                             )
 
 

@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -57,10 +58,11 @@ fun Field(
     leftLabel: String? = null,
     rightLabel: String? = null,
     onToggle: ((String) -> Unit)? = null,
-    keyboardType: KeyboardType
+    keyboardType: KeyboardType,
+    focusManager: FocusManager
 ) {
 
-    val focusManager = LocalFocusManager.current
+//    val focusManager = LocalFocusManager.current
 
     val theme by prefs
         .data
