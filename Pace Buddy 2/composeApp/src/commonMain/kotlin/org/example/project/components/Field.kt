@@ -55,6 +55,7 @@ fun Field(
     onValueChange: (TextFieldValue) -> Unit,
     onFocus: () -> Unit,
     onBlur: () -> Unit,
+    onDone: ()-> Unit,
     leftLabel: String? = null,
     rightLabel: String? = null,
     onToggle: ((String) -> Unit)? = null,
@@ -128,6 +129,7 @@ fun Field(
                 keyboardActions = KeyboardActions(
                     onDone = {
                         focusManager.clearFocus()
+                        onDone()
                     }
                 ),
                 textStyle = TextStyle(

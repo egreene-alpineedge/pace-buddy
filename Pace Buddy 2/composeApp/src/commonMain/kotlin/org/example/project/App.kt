@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -59,6 +60,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import createDataStore
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.example.project.Services.CalculationService
@@ -213,6 +215,7 @@ fun App(
     }
 ) {
     val focusManager = LocalFocusManager.current
+    var isFocused by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val viewModel = remember {
@@ -253,6 +256,8 @@ fun App(
     var changesMade by remember {
         mutableStateOf(false)
     }
+
+    val keyboardHeight = MutableStateFlow(0.dp)
 
 
     fun updateFields() {
@@ -380,53 +385,57 @@ fun App(
                                 }
                         )
 
-//                        Button(
-//                            modifier = Modifier.size(width = 80.dp, height = 40.dp),
-//                            onClick = {
-//                                viewModel.onReset()
-//
-//                                distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
-//                                timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
-//                                speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
-//                                paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
-//                                splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
-//                            },
-//                            colors = ButtonDefaults.buttonColors(
-//                                containerColor = Theme[theme]!!.resetButtonColor,
-//                            ),
-//                            shape = RoundedCornerShape(8.dp),
-//                            contentPadding = PaddingValues(0.dp),
-//                            border = fadedBorder()
-//                        ) {
-//                            Text(
-//                                text = "Reset",
-//                                fontFamily = UrbanistFontFamily(),
-//                                fontSize = 20.sp,
-//                                fontWeight = FontWeight.Normal,
-//                                color = Color.White,
-//                            )
-//
-//                        }
-                        Button(
-                            modifier = Modifier.size(width = 80.dp, height = 40.dp),
-                            onClick = {
-                                focusManager.clearFocus()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Theme[theme]!!.resetButtonColor,
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            border = fadedBorder()
-                        ) {
-                            Text(
-                                text = "Done",
-                                fontFamily = UrbanistFontFamily(),
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = Color.White,
-                            )
+                        if (isFocused) {
+                            Button(
+                                modifier = Modifier.size(width = 80.dp, height = 40.dp),
+                                onClick = {
+                                    isFocused = false
+                                    focusManager.clearFocus()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF4FEE5F),
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                border = fadedBorder()
+                            ) {
+                                Text(
+                                    text = "Done",
+                                    fontFamily = UrbanistFontFamily(),
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                )
 
+                            }
+                        } else {
+                            Button(
+                                modifier = Modifier.size(width = 80.dp, height = 40.dp),
+                                onClick = {
+                                    viewModel.onReset()
+
+                                    distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
+                                    timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
+                                    speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
+                                    paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
+                                    splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Theme[theme]!!.resetButtonColor,
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                border = fadedBorder()
+                            ) {
+                                Text(
+                                    text = "Reset",
+                                    fontFamily = UrbanistFontFamily(),
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = Color.White,
+                                )
+
+                            }
                         }
                     }
 
@@ -450,7 +459,7 @@ fun App(
                                     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                                 )
                             )
-                            .height(360.dp)
+                            .height(340.dp)
                             .fillMaxWidth()
                             .onGloballyPositioned { coordinates: LayoutCoordinates ->
                                 // Converts the top-left corner (Offset.Zero) of the composable
@@ -501,7 +510,7 @@ fun App(
                         Column (
                             modifier = Modifier
                                 .padding(vertical = 20.dp, horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ){
                             Field(
@@ -513,7 +522,8 @@ fun App(
                                     distanceTextField = it
                                 },
                                 onFocus = {
-                                    distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
+                                    isFocused = true
+                                    distanceTextField = distanceTextField.copy(text = distanceTextField.text, selection = TextRange(distanceTextField.text.length))
                                 },
                                 onBlur = {
                                     val distanceValue = distanceTextField.text.toDoubleOrNull()
@@ -521,6 +531,9 @@ fun App(
                                         viewModel.onBlurDistanceField(value = distanceValue)
                                         updateFields()
                                     }
+                                },
+                                onDone = {
+                                    isFocused = false
                                 },
                                 leftLabel = "mi",
                                 rightLabel = "km",
@@ -578,7 +591,11 @@ fun App(
                                     timeTextField = it
                                 },
                                 onFocus = {
-                                    timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
+                                    isFocused = true
+                                    timeTextField = timeTextField.copy(text = timeTextField.text, selection = TextRange(timeTextField.text.length))
+                                },
+                                onDone = {
+                                    isFocused = false
                                 },
                                 onBlur = {
                                     if (timeTextField.text != "") {
@@ -602,7 +619,8 @@ fun App(
                                     paceTextField = it
                                 },
                                 onFocus = {
-                                    paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
+                                    isFocused = true
+                                    paceTextField = paceTextField.copy(text = paceTextField.text, selection = TextRange(paceTextField.text.length))
                                 },
                                 onBlur = {
                                     if (paceTextField.text != "") {
@@ -610,6 +628,9 @@ fun App(
                                         viewModel.onBlurPaceField(value = paceValue)
                                         updateFields()
                                     }
+                                },
+                                onDone = {
+                                    isFocused = false
                                 },
                                 leftLabel = "/mi",
                                 rightLabel = "/km",
@@ -631,7 +652,8 @@ fun App(
                                     speedTextField = it
                                 },
                                 onFocus = {
-                                    speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
+                                    isFocused = true
+                                    speedTextField = speedTextField.copy(text = speedTextField.text, selection = TextRange(speedTextField.text.length))
                                 },
                                 onBlur = {
                                     val speedValue = speedTextField.text.toDoubleOrNull()
@@ -639,6 +661,9 @@ fun App(
                                         viewModel.onBlurSpeedField(value = speedValue)
                                         updateFields()
                                     }
+                                },
+                                onDone = {
+                                    isFocused = false
                                 },
                                 leftLabel = "mph",
                                 rightLabel = "kph",
@@ -660,7 +685,8 @@ fun App(
                                     splitTextField = it
                                 },
                                 onFocus = {
-                                    splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
+                                    isFocused = true
+                                    splitTextField = splitTextField.copy(text = splitTextField.text, selection = TextRange(splitTextField.text.length))
                                 },
                                 onBlur = {
                                     val splitValue = splitTextField.text.toDoubleOrNull()
@@ -668,6 +694,9 @@ fun App(
                                         viewModel.onBlurSplitField(value = splitValue)
                                         updateFields()
                                     }
+                                },
+                                onDone = {
+                                    isFocused = false
                                 },
                                 leftLabel = "mi",
                                 rightLabel = "km",
@@ -761,6 +790,39 @@ fun App(
                         }
                     }
 
+                }
+
+                Column {
+                    Spacer(Modifier.weight(1f))
+                    Button(
+                        modifier = Modifier.size(width = 80.dp, height = 40.dp),
+                        onClick = {
+                            viewModel.onReset()
+
+                            distanceTextField = distanceTextField.copy(text = "", selection = TextRange(0))
+                            timeTextField = timeTextField.copy(text = "", selection = TextRange(0))
+                            speedTextField = speedTextField.copy(text = "", selection = TextRange(0))
+                            paceTextField = paceTextField.copy(text = "", selection = TextRange(0))
+                            splitTextField = splitTextField.copy(text = "", selection = TextRange(0))
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Theme[theme]!!.resetButtonColor,
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        border = fadedBorder()
+                    ) {
+                        Text(
+                            text = "Reset",
+                            fontFamily = UrbanistFontFamily(),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = Color.White,
+                        )
+
+                    }
+                    val kbHeight by keyboardHeight.collectAsState()
+                    Spacer(modifier = Modifier.height(kbHeight))
                 }
             }
         }

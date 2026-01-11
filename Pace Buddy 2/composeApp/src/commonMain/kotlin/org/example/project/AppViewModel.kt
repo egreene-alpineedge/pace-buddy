@@ -186,16 +186,16 @@ class AppViewModel(
         // Calculate Pace
         pace = calculatePace(speed = s)
 
-        // Calculate Distance
-        if (time != null) {
-            val t = time!!
-            distance = calculateDistance(time = t, speed = s)
-        }
-
         // Calculate Time
-        else if (distance != null) {
+        if (distance != null) {
             val d = distance!!
             time = calculateTime(distance = d, speed = s)
+        }
+
+        // Calculate Distance
+        else if (time != null) {
+            val t = time!!
+            distance = calculateDistance(time = t, speed = s)
         }
 
         // Update Splits
@@ -207,16 +207,16 @@ class AppViewModel(
 
         val s = speed!!
 
-        // Calculate Distance
-        if (time != null) {
-            val t = time!!
-            distance = calculateDistance(time = t, speed = s)
-        }
-
         // Calculate Time
-        else if (distance != null) {
+        if (distance != null) {
             val d = distance!!
             time = calculateTime(distance = d, speed = s)
+        }
+
+        // Calculate Distance
+        else if (time != null) {
+            val t = time!!
+            distance = calculateDistance(time = t, speed = s)
         }
 
         // Update Splits
@@ -265,8 +265,9 @@ class AppViewModel(
 
         var currentDistance = splitInterval
         var currentTime = firstSplitTime
+        var iteration = 0
         val splitsToAdd = mutableListOf<Split>()
-        while (currentDistance <= distanceInMeters) {
+        while (currentDistance <= distanceInMeters && iteration < 500) {
             splitsToAdd.add(
                 Split(
                     length = currentDistance,
@@ -277,6 +278,7 @@ class AppViewModel(
 
             currentDistance += splitInterval
             currentTime += firstSplitTime
+            iteration++
         }
 
         // Convert to Preferred Split Unit
