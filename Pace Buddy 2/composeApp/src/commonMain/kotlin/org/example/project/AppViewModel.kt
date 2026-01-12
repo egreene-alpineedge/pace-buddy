@@ -242,7 +242,6 @@ class AppViewModel(
         // Update Splits
         updateSplits()
     }
-
     fun updateSplits() {
         val t = time
         val d = distance
@@ -257,7 +256,8 @@ class AppViewModel(
         val splitInterval = sp * setSplitUnit.metersFactor
 
         // Convert Distance to meters
-        val distanceInMeters = conversionService.toMeters(value = d, fromUnit = distanceUnit)
+        val distanceInMetersUnrounded = conversionService.toMeters(value = d, fromUnit = distanceUnit)
+        val distanceInMeters = (distanceInMetersUnrounded*1000).roundToInt().toDouble() / 1000
 
         // Calculate Splits
         val firstSplitTimeUnrounded = t / (distanceInMeters/splitInterval)
@@ -267,7 +267,7 @@ class AppViewModel(
         var currentTime = firstSplitTime
         var iteration = 0
         val splitsToAdd = mutableListOf<Split>()
-        while (currentDistance <= distanceInMeters && iteration < 500) {
+        while (currentDistance < distanceInMeters && iteration < 500) {
             splitsToAdd.add(
                 Split(
                     length = currentDistance,
@@ -279,6 +279,17 @@ class AppViewModel(
             currentDistance += splitInterval
             currentTime += firstSplitTime
             iteration++
+
+            // Add the last split to be the final if the next iteration is greater
+            if (currentDistance >= distanceInMeters) {
+                splitsToAdd.add(
+                    Split(
+                        length = distanceInMeters,
+                        unit = setSplitUnit,
+                        time = t
+                    )
+                )
+            }
         }
 
         // Convert to Preferred Split Unit
