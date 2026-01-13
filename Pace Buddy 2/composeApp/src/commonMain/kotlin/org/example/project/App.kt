@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -342,9 +344,10 @@ fun App(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .windowInsetsPadding(WindowInsets.safeDrawing),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-
+                        .windowInsetsPadding(
+                            WindowInsets.safeDrawing
+                                .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+                        ),
                     ) {
 
                     Row(
@@ -445,353 +448,472 @@ fun App(
                         }
                     }
 
-                    Box (
-                        modifier = Modifier
-                            .border(
-                                width = 1.dp,
-                                brush = Brush.verticalGradient(
-                                    listOf(Color.White, Color.Transparent)
-                                ),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        Color.White.copy(alpha = 0.3f),
-                                        Color.White.copy(alpha = 0.1f)
+                    Column(
+//                        modifier = Modifier
+//                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                    ){
+                        Box(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    brush = Brush.verticalGradient(
+                                        listOf(Color.White, Color.Transparent)
                                     ),
-                                    start = Offset(0f, 0f),
-                                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                                    shape = RoundedCornerShape(20.dp)
                                 )
-                            )
-                            .height(340.dp)
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coordinates: LayoutCoordinates ->
-                                // Converts the top-left corner (Offset.Zero) of the composable
-                                // to its position relative to the window/screen.
-                                val screenPosition = coordinates.localToWindow(Offset.Zero)
-                                fieldScreenPosition = screenPosition
-                            },
-
-                    ) {
-
-                        Image(
-                            imageResource(Theme[theme]!!.backgroundImage),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .wrapContentSize(unbounded = true, align = Alignment.TopStart)
-                                .width(screenWidth)
-                                .height(screenHeight)
-                                .offset {
-                                    IntOffset(
-                                        -1 * fieldScreenPosition.x.toInt(),
-                                        -1 * fieldScreenPosition.y.toInt()
-                                    )
-                                }
-                                .blur(15.dp)
-                        )
-
-                        Column(
-                            modifier = Modifier
-                                .background(Color(0xFF097381).copy(alpha = 0.2f))
-                                .height(screenHeight)
-                                .width(screenWidth)
-                        ) { }
-
-                        Column(
-                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
                                 .background(
                                     Brush.linearGradient(
-                                        colors = Theme[theme]!!.containerGradient,
-                                        start = Offset(0f, 0f),     // top
-                                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)      // bottom
-                                    )
-                                )
-                                .height(screenHeight)
-                                .width(screenWidth)
-                        ) { }
-
-                        Column (
-                            modifier = Modifier
-                                .padding(vertical = 20.dp, horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Field(
-                                label = "Distance",
-                                value = distanceTextField,
-                                transform = { handleDecimalValueChange(it) },
-                                onValueChange = {
-                                    changesMade = true
-                                    distanceTextField = it
-                                },
-                                onFocus = {
-                                    isFocused = true
-                                    distanceTextField = distanceTextField.copy(text = distanceTextField.text, selection = TextRange(distanceTextField.text.length))
-                                },
-                                onBlur = {
-                                    val distanceValue = distanceTextField.text.toDoubleOrNull()
-                                    if (distanceValue != null) {
-                                        viewModel.onBlurDistanceField(value = distanceValue)
-                                        updateFields()
-                                    }
-                                },
-                                onDone = {
-                                    isFocused = false
-                                },
-                                leftLabel = "mi",
-                                rightLabel = "km",
-                                onToggle = { unitString ->
-                                    changesMade = true
-                                    viewModel.onToggleDistanceUnit(unitString)
-                                    updateFields()
-                                },
-                                keyboardType = KeyboardType.Decimal,
-                                prefs = prefs,
-                                focusManager = focusManager
-                            )
-
-//                            Box(
-//                                contentAlignment = Alignment.Center,
-//                                modifier = Modifier
-//                                    .width(130.dp)
-//                                    .clip(RoundedCornerShape(8.dp))
-//                                    .background(Color.White.copy(alpha = Theme[theme]!!.textFieldTransparency))
-//                                    .border(
-//                                        width = 1.dp,
-//                                        brush = Brush.verticalGradient(
-//                                            listOf(Color.White, Color.Transparent)
-//                                        ),
-//                                        shape = RoundedCornerShape(8.dp)
-//                                    )
-//                                    .padding(horizontal = 0.dp, vertical = 5.dp)
-//
-//                            ) {
-//                                BasicTextField(
-//                                    value = "22h 22m 22s",
-//                                    singleLine = true,
-//                                    onValueChange = { },
-//                                    textStyle = TextStyle(
-//                                        fontSize = 22.sp,
-//                                        fontFamily = UrbanistFontFamily(),
-//                                        fontWeight = FontWeight.Medium,
-//                                        textAlign = TextAlign.Center,
-//                                        color = Theme[theme]!!.textColor
-//                                    ),
-//
-//                                    modifier = Modifier
-//                                        .width(130.dp)
-//                                        .background(Color.Transparent)
-//                                        .padding(0.dp)
-//                                )
-//                            }
-
-                            Field(
-                                label = "Time",
-                                value = timeTextField,
-                                transform = { handleTimeValueChange(it) }, // As we're typing
-                                onValueChange = {
-                                    changesMade = true
-                                    timeTextField = it
-                                },
-                                onFocus = {
-                                    isFocused = true
-                                    timeTextField = timeTextField.copy(text = timeTextField.text, selection = TextRange(timeTextField.text.length))
-                                },
-                                onDone = {
-                                    isFocused = false
-                                },
-                                onBlur = {
-                                    if (timeTextField.text != "") {
-                                        val timeValue = convertTimeTextToValue(timeTextField.text)
-                                        viewModel.onBlurTimeField(value = timeValue)
-                                        updateFields()
-                                    }
-                                },
-                                keyboardType = KeyboardType.Number,
-                                prefs = prefs,
-                                focusManager = focusManager
-                            )
-
-
-                            Field(
-                                label = "Pace",
-                                value = paceTextField,
-                                transform = { handleTimeValueChange(it) }, // As we're typing
-                                onValueChange = {
-                                    changesMade = true
-                                    paceTextField = it
-                                },
-                                onFocus = {
-                                    isFocused = true
-                                    paceTextField = paceTextField.copy(text = paceTextField.text, selection = TextRange(paceTextField.text.length))
-                                },
-                                onBlur = {
-                                    if (paceTextField.text != "") {
-                                        val paceValue = convertTimeTextToValue(paceTextField.text)
-                                        viewModel.onBlurPaceField(value = paceValue)
-                                        updateFields()
-                                    }
-                                },
-                                onDone = {
-                                    isFocused = false
-                                },
-                                leftLabel = "/mi",
-                                rightLabel = "/km",
-                                onToggle = { unitString ->
-                                    changesMade = true
-                                    viewModel.onTogglePaceUnit(unitString)
-                                    updateFields()
-                                },
-                                keyboardType = KeyboardType.Number,
-                                prefs = prefs,
-                                focusManager = focusManager
-                            )
-                            Field(
-                                label = "Speed",
-                                value = speedTextField,
-                                transform = { handleDecimalValueChange(it) },
-                                onValueChange = {
-                                    changesMade = true
-                                    speedTextField = it
-                                },
-                                onFocus = {
-                                    isFocused = true
-                                    speedTextField = speedTextField.copy(text = speedTextField.text, selection = TextRange(speedTextField.text.length))
-                                },
-                                onBlur = {
-                                    val speedValue = speedTextField.text.toDoubleOrNull()
-                                    if (speedValue != null) {
-                                        viewModel.onBlurSpeedField(value = speedValue)
-                                        updateFields()
-                                    }
-                                },
-                                onDone = {
-                                    isFocused = false
-                                },
-                                leftLabel = "mph",
-                                rightLabel = "kph",
-                                onToggle = { unitString ->
-                                    changesMade = true
-                                    viewModel.onToggleSpeedUnit(unitString)
-                                    updateFields()
-                                },
-                                keyboardType = KeyboardType.Decimal,
-                                prefs = prefs,
-                                focusManager = focusManager
-                            )
-                            Field(
-                                label = "Split",
-                                value = splitTextField,
-                                transform = { handleDecimalValueChange(it) },
-                                onValueChange = {
-                                    changesMade = true
-                                    splitTextField = it
-                                },
-                                onFocus = {
-                                    isFocused = true
-                                    splitTextField = splitTextField.copy(text = splitTextField.text, selection = TextRange(splitTextField.text.length))
-                                },
-                                onBlur = {
-                                    val splitValue = splitTextField.text.toDoubleOrNull()
-                                    if (splitValue != null) {
-                                        viewModel.onBlurSplitField(value = splitValue)
-                                        updateFields()
-                                    }
-                                },
-                                onDone = {
-                                    isFocused = false
-                                },
-                                leftLabel = "mi",
-                                rightLabel = "km",
-                                onToggle = { unitString ->
-                                    changesMade = true
-                                    viewModel.onToggleSplitUnit(unitString)
-                                    updateFields()
-                                },
-                                keyboardType = KeyboardType.Decimal,
-                                prefs = prefs,
-                                focusManager = focusManager
-                            )
-
-
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .border(
-                                width = 1.dp,
-                                brush = Brush.verticalGradient(
-                                    listOf(Color.White, Color.Transparent)
-                                ),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .clip(RoundedCornerShape(20.dp))
-                            .height(
-                                if (viewModel.splits.count() == 0) 0.dp
-                                else (28*viewModel.splits.count() + 12*(viewModel.splits.count()-1) + 24 + 24 + 2).dp
-                            )
-                            .onGloballyPositioned { coordinates: LayoutCoordinates ->
-                                // Converts the top-left corner (Offset.Zero) of the composable
-                                // to its position relative to the window/screen.
-                                val screenPosition = coordinates.localToWindow(Offset.Zero)
-                                splitScreenPosition = screenPosition
-                            },
-                    ) {
-
-                        Image(
-                            imageResource(Theme[theme]!!.backgroundImage),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .wrapContentSize(unbounded = true, align = Alignment.TopStart)
-                                .width(screenWidth)
-                                .height(screenHeight)
-                                .offset {
-                                    IntOffset(
-                                        -1 * splitScreenPosition.x.toInt(),
-                                        -1 * splitScreenPosition.y.toInt()
-                                    )
-                                }
-                                .blur(15.dp)
-                        )
-
-                        Column(
-                            modifier = Modifier
-                                .background(Color(0xFF097381).copy(alpha = 0.2f))
-                                .height(screenHeight)
-                                .width(screenWidth)
-                        ) { }
-
-                        Column(
-                            modifier = Modifier
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = Theme[theme]!!.containerGradient,
+                                        colors = listOf(
+                                            Color.White.copy(alpha = 0.3f),
+                                            Color.White.copy(alpha = 0.1f)
+                                        ),
                                         start = Offset(0f, 0f),
-                                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)      // bottom
+                                        end = Offset(
+                                            Float.POSITIVE_INFINITY,
+                                            Float.POSITIVE_INFINITY
+                                        )
                                     )
                                 )
-                                .height(screenHeight)
-                                .width(screenWidth)
-                        ) { }
+                                .height((50 * 8 + 12 * 8 + 24 + 40).dp) // fieldHeight * numberOfFields + spacing * numberOfFields + dropdownbuttonheight + topPadding+bottomPadding
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coordinates: LayoutCoordinates ->
+                                    // Converts the top-left corner (Offset.Zero) of the composable
+                                    // to its position relative to the window/screen.
+                                    val screenPosition = coordinates.localToWindow(Offset.Zero)
+                                    fieldScreenPosition = screenPosition
+                                },
 
+                            ) {
 
-                        Column(
+                            Image(
+                                imageResource(Theme[theme]!!.backgroundImage),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .wrapContentSize(unbounded = true, align = Alignment.TopStart)
+                                    .width(screenWidth)
+                                    .height(screenHeight)
+                                    .offset {
+                                        IntOffset(
+                                            x = -1 * fieldScreenPosition.x.toInt(),
+                                            y = -1 * fieldScreenPosition.y.toInt()
+                                        )
+                                    }
+                                    .blur(15.dp)
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .background(Color(0xFF097381).copy(alpha = 0.2f))
+                                    .wrapContentSize(unbounded = true, align = Alignment.TopStart)
+                                    .width(screenWidth)
+                                    .height(screenHeight)
+                            ) { }
+
+                            Column(
+                                modifier = Modifier
+                                    .background(
+                                        Brush.linearGradient(
+                                            colors = Theme[theme]!!.containerGradient,
+                                            start = Offset(0f, 0f),     // top
+                                            end = Offset(
+                                                Float.POSITIVE_INFINITY,
+                                                Float.POSITIVE_INFINITY
+                                            )      // bottom
+                                        )
+                                    )
+                                    .height(screenHeight)
+                                    .width(screenWidth)
+                            ) { }
+
+                            Column(
+                                modifier = Modifier
+                                    .padding(vertical = 20.dp, horizontal = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    Field(
+                                        label = "Distance",
+                                        value = distanceTextField,
+                                        transform = { handleDecimalValueChange(it) },
+                                        onValueChange = {
+                                            changesMade = true
+                                            distanceTextField = it
+                                        },
+                                        onFocus = {
+                                            isFocused = true
+                                            distanceTextField = distanceTextField.copy(
+                                                text = distanceTextField.text,
+                                                selection = TextRange(distanceTextField.text.length)
+                                            )
+                                        },
+                                        onBlur = {
+                                            val distanceValue = distanceTextField.text.toDoubleOrNull()
+                                            if (distanceValue != null) {
+                                                viewModel.onBlurDistanceField(value = distanceValue)
+                                                updateFields()
+                                            }
+                                        },
+                                        onDone = {
+                                            isFocused = false
+                                        },
+                                        leftLabel = "mi",
+                                        rightLabel = "km",
+                                        onToggle = { unitString ->
+                                            changesMade = true
+                                            viewModel.onToggleDistanceUnit(unitString)
+                                            updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Decimal,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Time",
+                                        value = timeTextField,
+                                        transform = { handleTimeValueChange(it) }, // As we're typing
+                                        onValueChange = {
+                                            changesMade = true
+                                            timeTextField = it
+                                        },
+                                        onFocus = {
+                                            isFocused = true
+                                            timeTextField = timeTextField.copy(
+                                                text = timeTextField.text,
+                                                selection = TextRange(timeTextField.text.length)
+                                            )
+                                        },
+                                        onDone = {
+                                            isFocused = false
+                                        },
+                                        onBlur = {
+                                            if (timeTextField.text != "") {
+                                                val timeValue =
+                                                    convertTimeTextToValue(timeTextField.text)
+                                                viewModel.onBlurTimeField(value = timeValue)
+                                                updateFields()
+                                            }
+                                        },
+                                        keyboardType = KeyboardType.Number,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Pace",
+                                        value = paceTextField,
+                                        transform = { handleTimeValueChange(it) }, // As we're typing
+                                        onValueChange = {
+                                            changesMade = true
+                                            paceTextField = it
+                                        },
+                                        onFocus = {
+                                            isFocused = true
+                                            paceTextField = paceTextField.copy(
+                                                text = paceTextField.text,
+                                                selection = TextRange(paceTextField.text.length)
+                                            )
+                                        },
+                                        onBlur = {
+                                            if (paceTextField.text != "") {
+                                                val paceValue =
+                                                    convertTimeTextToValue(paceTextField.text)
+                                                viewModel.onBlurPaceField(value = paceValue)
+                                                updateFields()
+                                            }
+                                        },
+                                        onDone = {
+                                            isFocused = false
+                                        },
+                                        leftLabel = "/mi",
+                                        rightLabel = "/km",
+                                        onToggle = { unitString ->
+                                            changesMade = true
+                                            viewModel.onTogglePaceUnit(unitString)
+                                            updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Number,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Speed",
+                                        value = speedTextField,
+                                        transform = { handleDecimalValueChange(it) },
+                                        onValueChange = {
+                                            changesMade = true
+                                            speedTextField = it
+                                        },
+                                        onFocus = {
+                                            isFocused = true
+                                            speedTextField = speedTextField.copy(
+                                                text = speedTextField.text,
+                                                selection = TextRange(speedTextField.text.length)
+                                            )
+                                        },
+                                        onBlur = {
+                                            val speedValue = speedTextField.text.toDoubleOrNull()
+                                            if (speedValue != null) {
+                                                viewModel.onBlurSpeedField(value = speedValue)
+                                                updateFields()
+                                            }
+                                        },
+                                        onDone = {
+                                            isFocused = false
+                                        },
+                                        leftLabel = "mph",
+                                        rightLabel = "kph",
+                                        onToggle = { unitString ->
+                                            changesMade = true
+                                            viewModel.onToggleSpeedUnit(unitString)
+                                            updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Decimal,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Elevation",
+                                        value = distanceTextField,
+                                        transform = { handleDecimalValueChange(it) },
+                                        onValueChange = {
+//                                    changesMade = true
+//                                    distanceTextField = it
+                                        },
+                                        onFocus = {
+//                                    isFocused = true
+//                                    distanceTextField = distanceTextField.copy(text = distanceTextField.text, selection = TextRange(distanceTextField.text.length))
+                                        },
+                                        onBlur = {
+//                                    val distanceValue = distanceTextField.text.toDoubleOrNull()
+//                                    if (distanceValue != null) {
+//                                        viewModel.onBlurDistanceField(value = distanceValue)
+//                                        updateFields()
+//                                    }
+                                        },
+                                        onDone = {
+//                                    isFocused = false
+                                        },
+                                        leftLabel = "mi",
+                                        rightLabel = "km",
+                                        onToggle = { unitString ->
+//                                    changesMade = true
+//                                    viewModel.onToggleDistanceUnit(unitString)
+//                                    updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Decimal,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Avg. Elev.",
+                                        value = distanceTextField,
+                                        transform = { handleDecimalValueChange(it) },
+                                        onValueChange = {
+//                                    changesMade = true
+//                                    distanceTextField = it
+                                        },
+                                        onFocus = {
+//                                    isFocused = true
+//                                    distanceTextField = distanceTextField.copy(text = distanceTextField.text, selection = TextRange(distanceTextField.text.length))
+                                        },
+                                        onBlur = {
+//                                    val distanceValue = distanceTextField.text.toDoubleOrNull()
+//                                    if (distanceValue != null) {
+//                                        viewModel.onBlurDistanceField(value = distanceValue)
+//                                        updateFields()
+//                                    }
+                                        },
+                                        onDone = {
+//                                    isFocused = false
+                                        },
+                                        leftLabel = "mi",
+                                        rightLabel = "km",
+                                        onToggle = { unitString ->
+//                                    changesMade = true
+//                                    viewModel.onToggleDistanceUnit(unitString)
+//                                    updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Decimal,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Grade",
+                                        value = distanceTextField,
+                                        transform = { handleDecimalValueChange(it) },
+                                        onValueChange = {
+//                                    changesMade = true
+//                                    distanceTextField = it
+                                        },
+                                        onFocus = {
+//                                    isFocused = true
+//                                    distanceTextField = distanceTextField.copy(text = distanceTextField.text, selection = TextRange(distanceTextField.text.length))
+                                        },
+                                        onBlur = {
+//                                    val distanceValue = distanceTextField.text.toDoubleOrNull()
+//                                    if (distanceValue != null) {
+//                                        viewModel.onBlurDistanceField(value = distanceValue)
+//                                        updateFields()
+//                                    }
+                                        },
+                                        onDone = {
+//                                    isFocused = false
+                                        },
+                                        leftLabel = "mi",
+                                        rightLabel = "km",
+                                        onToggle = { unitString ->
+//                                    changesMade = true
+//                                    viewModel.onToggleDistanceUnit(unitString)
+//                                    updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Decimal,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                    Field(
+                                        label = "Split",
+                                        value = splitTextField,
+                                        transform = { handleDecimalValueChange(it) },
+                                        onValueChange = {
+                                            changesMade = true
+                                            splitTextField = it
+                                        },
+                                        onFocus = {
+                                            isFocused = true
+                                            splitTextField = splitTextField.copy(
+                                                text = splitTextField.text,
+                                                selection = TextRange(splitTextField.text.length)
+                                            )
+                                        },
+                                        onBlur = {
+                                            val splitValue = splitTextField.text.toDoubleOrNull()
+                                            if (splitValue != null) {
+                                                viewModel.onBlurSplitField(value = splitValue)
+                                                updateFields()
+                                            }
+                                        },
+                                        onDone = {
+                                            isFocused = false
+                                        },
+                                        leftLabel = "mi",
+                                        rightLabel = "km",
+                                        onToggle = { unitString ->
+                                            changesMade = true
+                                            viewModel.onToggleSplitUnit(unitString)
+                                            updateFields()
+                                        },
+                                        keyboardType = KeyboardType.Decimal,
+                                        prefs = prefs,
+                                        focusManager = focusManager
+                                    )
+                                }
+                                Button(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(24.dp),
+                                    onClick = {
+                                        isFocused = false
+                                        focusManager.clearFocus()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.White.copy(alpha = 0f),
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(0.dp),
+                                ) {
+                                    Text(
+                                        text = "Drop",
+                                        fontFamily = UrbanistFontFamily(),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black,
+                                    )
+
+                                }
+                            }
+                        }
+
+                        Box(
                             modifier = Modifier
-                                .padding(24.dp)
-                                .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            viewModel.splits.forEach { split ->
-                                SplitRow(
-                                    split = "${convertValueToDecimalText(split.length)} ${viewModel.splitUnit.name.lowercase()}",
-                                    time = convertValueToTimeText(split.time),
-                                    textColor = Theme[theme]!!.textColor
+                                .border(
+                                    width = 1.dp,
+                                    brush = Brush.verticalGradient(
+                                        listOf(Color.White, Color.Transparent)
+                                    ),
+                                    shape = RoundedCornerShape(20.dp)
                                 )
+                                .clip(RoundedCornerShape(20.dp))
+                                .height(
+                                    if (viewModel.splits.count() == 0) 0.dp
+                                    else (28 * viewModel.splits.count() + 12 * (viewModel.splits.count() - 1) + 24 + 24 + 2).dp
+                                )
+                                .onGloballyPositioned { coordinates: LayoutCoordinates ->
+                                    // Converts the top-left corner (Offset.Zero) of the composable
+                                    // to its position relative to the window/screen.
+                                    val screenPosition = coordinates.localToWindow(Offset.Zero)
+                                    splitScreenPosition = screenPosition
+                                },
+                        ) {
+
+                            Image(
+                                imageResource(Theme[theme]!!.backgroundImage),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .wrapContentSize(unbounded = true, align = Alignment.TopStart)
+                                    .width(screenWidth)
+                                    .height(screenHeight)
+                                    .offset {
+                                        IntOffset(
+                                            x = -1 * splitScreenPosition.x.toInt(),
+                                            y = -1 * splitScreenPosition.y.toInt()
+                                        )
+                                    }
+                                    .blur(15.dp)
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .background(Color(0xFF097381).copy(alpha = 0.2f))
+                                    .width(screenWidth)
+                                    .height(screenHeight*20)
+                            ) { }
+
+                            Column(
+                                modifier = Modifier
+                                    .background(
+                                        Brush.linearGradient(
+                                            colors = Theme[theme]!!.containerGradient,
+                                            start = Offset(0f, 0f),
+                                            end = Offset(
+                                                Float.POSITIVE_INFINITY,
+                                                Float.POSITIVE_INFINITY
+                                            )      // bottom
+                                        )
+                                    )
+                                    .width(screenWidth)
+                                    .height(screenHeight*20)
+                            ) { }
+
+
+                            Column(
+                                modifier = Modifier
+                                    .padding(24.dp)
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                viewModel.splits.forEach { split ->
+                                    SplitRow(
+                                        split = "${convertValueToDecimalText(split.length)} ${viewModel.splitUnit.name.lowercase()}",
+                                        time = convertValueToTimeText(split.time),
+                                        textColor = Theme[theme]!!.textColor
+                                    )
+                                }
                             }
                         }
                     }
